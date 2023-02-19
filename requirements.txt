@@ -2,4 +2,3 @@ pandas
 matplotlib
 PyQt5
 jupyter
-plotly
