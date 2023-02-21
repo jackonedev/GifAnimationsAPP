@@ -53,3 +53,33 @@ def plot_data(df, speed=100, repeat=True):
         return line, 
 
     return FuncAnimation(fig, update, frames=len(df), interval=speed, blit=True, repeat=repeat)
+
+
+def apply_dark_mode():
+    """https://matplotlib.org/3.5.0/tutorials/introductory/customizing.html
+    https://matplotlib.org/3.1.1/tutorials/colors/colors.html"""
+
+    import matplotlib.pyplot as plt
+
+    import matplotlib as mpl
+    from matplotlib import cycler
+
+    colors = cycler(
+        "color", ["#669FEE", "#66EE91", "#9988DD", "#EECC55", "#88BB44", "#FFBBBB"]
+    )
+
+    plt.rc("figure", facecolor="#313233")
+    plt.rc(
+        "axes",
+        facecolor="#313233",
+        edgecolor="none",
+        axisbelow=True,
+        grid=True,
+        prop_cycle=colors,
+        labelcolor="0.81",
+    )
+    plt.rc("grid", color="474A4A", linestyle="solid")
+    plt.rc("xtick", color="0.81", labelsize=12)
+    plt.rc("ytick", direction="out", color="0.81", labelsize=12)
+    plt.rc("legend", facecolor="#313233", edgecolor="#313233")
+    plt.rc("text", color="#C9C9C9")    
