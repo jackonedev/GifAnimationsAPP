@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from collections import deque
 from matplotlib.animation import FuncAnimation
@@ -26,21 +27,25 @@ def clean_labels(data_labels):
 
 def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:# (2): agregar el parametro repear para ver que forma va a tener el deque
     """Storage all the results of processing the deque object"""
+    repeat=True
     if not window:
         window = len(data)
-    drop_elements = list(data[label].values)[-2::-1]
-    dy = deque(data[label].values, maxlen=len(data))#(1) ORIGINALMENTE ERA np.zeros(window)
-    lista_frames = [dy.copy()]
+        repeat = False
 
+    dy = deque(np.zeros(window), maxlen=window)
+    lista_frames = [dy.copy()]
+    # if repeat:
+    #     dy = deque(data[label].values, maxlen=len(data))#(1) ORIGINALMENTE ERA np.zeros(window)
+    #     lista_frames = [dy.copy()]
+
+    drop_elements = list(data[label].values)[-1::-1]
     while len(drop_elements) > 0:
         dy.append(drop_elements.pop())
         lista_frames.append(dy.copy())
 
-    row_keys = [f'{i}' for i in data.index]
+    row_keys = [f'{i}' for i in range(1,window)]
 
-    df = pd.DataFrame(lista_frames, columns=row_keys)
-
-    return df.iloc[:,:window]
+    return pd.DataFrame(lista_frames, columns=row_keys)
 
 
 def plot_data(df, speed=100, repeat=True):
