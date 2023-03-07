@@ -24,12 +24,12 @@ def clean_labels(data_labels):
     return cleaned_labels
 
 
-def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
+def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:# (2): agregar el parametro repear para ver que forma va a tener el deque
     """Storage all the results of processing the deque object"""
     if not window:
         window = len(data)
     drop_elements = list(data[label].values)[-2::-1]
-    dy = deque(data[label].values, maxlen=len(data))
+    dy = deque(data[label].values, maxlen=len(data))#(1) ORIGINALMENTE ERA np.zeros(window)
     lista_frames = [dy.copy()]
 
     while len(drop_elements) > 0:
