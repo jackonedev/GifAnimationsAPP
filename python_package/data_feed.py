@@ -80,9 +80,11 @@ def main():
 
     frames = {}
     frames['pressure'] = build_frames(data, label['pressure'])
-    frames['flow_rate'] = build_frames(data, label['flow_rate'], window=0)
+    frames['flow_rate'] = build_frames(data, label['flow_rate'], window=80)
 #    print (frames['flow_rate'].tail()) # <--  segunda ejecucion
 #    print (len(frames['flow_rate']))
+
+    ani = plot_data(frames['flow_rate'])
 
 if __name__ == "__main__":
     main()
