@@ -25,26 +25,27 @@ def clean_labels(data_labels):
     return cleaned_labels
 
 
+def create_frame(drop_elements:list, dy:deque,) -> pd.DataFrame:#TODO: cambiar el nombre de los parámetros
+    lista_frames = []
+    while len(drop_elements) > 0:
+        dy.append(drop_elements.pop())
+        lista_frames.append(dy.copy())
+    return lista_frames
+
 def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:# (2): agregar el parametro repear para ver que forma va a tener el deque
     """Storage all the results of processing the deque object"""
     repeat=True
     if not window:
         window = len(data)
         repeat = False
-
-    dy = deque(np.zeros(window), maxlen=window)
-    lista_frames = [dy.copy()]
     # if repeat:
     #     dy = deque(data[label].values, maxlen=len(data))#(1) ORIGINALMENTE ERA np.zeros(window)
     #     lista_frames = [dy.copy()]
 
+    dy = deque(np.zeros(window), maxlen=window)
     drop_elements = list(data[label].values)[-1::-1]
-    while len(drop_elements) > 0:
-        dy.append(drop_elements.pop())
-        lista_frames.append(dy.copy())
-
-    row_keys = [f'{i}' for i in range(1,window)]
-
+    lista_frames = create_frame(drop_elements, dy)
+    row_keys = [f'{i}' for i in range(window)]
     return pd.DataFrame(lista_frames, columns=row_keys)
 
 
@@ -60,31 +61,28 @@ def plot_data(df, speed=100, repeat=True):
     return FuncAnimation(fig, update, frames=len(df), interval=speed, blit=True, repeat=repeat)
 
 
-def apply_dark_mode():
-    """https://matplotlib.org/3.5.0/tutorials/introductory/customizing.html
-    https://matplotlib.org/3.1.1/tutorials/colors/colors.html"""
 
-    import matplotlib.pyplot as plt
+def main():
+    file_name = "data-processed.pkl"
+    try:
+        path = "01-data-animation/app/data/"
+        data = pd.read_pickle(path + file_name)
+    except:
+        path = "../data/"
+        data = pd.read_pickle(path + file_name)
 
-    import matplotlib as mpl
-    from matplotlib import cycler
 
-    colors = cycler(
-        "color", ["#669FEE", "#66EE91", "#9988DD", "#EECC55", "#88BB44", "#FFBBBB"]
-    )
+    # print (data.head()) # <--  primera ejecucion
+    selected_vars = ["MLN-EE-76-U-2_CAS-P.PV", "TFS-EE-176-MB_FC-HDR-DEN-OBS.PV"]
 
-    plt.rc("figure", facecolor="#313233")
-    plt.rc(
-        "axes",
-        facecolor="#313233",
-        edgecolor="none",
-        axisbelow=True,
-        grid=True,
-        prop_cycle=colors,
-        labelcolor="0.81",
-    )
-    plt.rc("grid", color="474A4A", linestyle="solid")
-    plt.rc("xtick", color="0.81", labelsize=12)
-    plt.rc("ytick", direction="out", color="0.81", labelsize=12)
-    plt.rc("legend", facecolor="#313233", edgecolor="#313233")
-    plt.rc("text", color="#C9C9C9")    
+    label = {'pressure': selected_vars[0], 'flow_rate': selected_vars[1]}
+    units = {'pressure': 'PSIg', 'flow_rate': 'm3/h'}
+
+    frames = {}
+    frames['pressure'] = build_frames(data, label['pressure'])
+    frames['flow_rate'] = build_frames(data, label['flow_rate'], window=0)
+#    print (frames['flow_rate'].tail()) # <--  segunda ejecucion
+#    print (len(frames['flow_rate']))
+
+if __name__ == "__main__":
+    main()
