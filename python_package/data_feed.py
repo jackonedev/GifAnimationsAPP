@@ -39,12 +39,14 @@ def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:#
         window = len(data)
         repeat = False
     # if repeat:
-    #     dy = deque(data[label].values, maxlen=len(data))#(1) ORIGINALMENTE ERA np.zeros(window)
+    #     dy = deque(data[label].values, maxlen=len(data))
+    #     drop_elements = list(data[label].values)[-1::-1]
     #     lista_frames = [dy.copy()]
-
+    # else:
     dy = deque(np.zeros(window), maxlen=window)
     drop_elements = list(data[label].values)[-1::-1]
     lista_frames = create_frame(drop_elements, dy)
+    #
     row_keys = [f'{i}' for i in range(window)]
     return pd.DataFrame(lista_frames, columns=row_keys)
 
