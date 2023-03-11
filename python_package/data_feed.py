@@ -3,7 +3,8 @@ import pandas as pd
 from collections import deque
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
-
+import matplotlib.dates as mdates
+import datetime as dt
 
 plt.ion()
 
@@ -51,31 +52,52 @@ def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
         drop_elements = list(data[label].values)[-2::-1]
         dy = deque(data[label].values, maxlen=len(data))
     else:
-        dy = deque(np.zeros(window)*data[label].iloc[0], maxlen=window)
+        if isinstance(data[label].iloc[0], pd._libs.tslibs.timestamps.Timestamp):
+            print ('Según  ISO 8601: formato estandar para representar fechas y tiempos')
+            dy = deque(np.zeros(window), maxlen=window)
+        else:
+            dy = deque(np.zeros(window)*data[label].iloc[0], maxlen=window)
         drop_elements = list(data[label].values)[-1::-1]
     #
     lista_frames = create_frame(drop_elements, dy)
     row_keys = [f'{i}' for i in range(window)]
     return pd.DataFrame(lista_frames, columns=row_keys)
 
-### Donde veas 3 "#" el mensaje es para tí Chat GPT·
 
-def plot_data(df, fps=24, repeat=True, cache=False):
+
+def plot_data(data, label, title, unit, lapse=8, fps=24, repeat=True, cache=False):
+# (df, dates, lapse, fps=24, repeat=True, cache=False):
     fig, ax = plt.subplots()
     line, = ax.plot([], [])
     interval = 1000/fps
-    ax.set_xlim(0, 5) ### este ax.set_xlim(0, 5) no se vé porque el objeto ax se actualiza en la función update
     
+    index_label =  data.reset_index().columns[0]
+    dx = build_frames(data.reset_index(), index_label)
+    dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%H:%M:%S'))
 
-    plt.rcParams[]
+    df = build_frames(data,label)
 
+
+    plt.title(title)
+    plt.xlabel('Time')
+    plt.ylabel(unit)
+    plt.tight_layout()
     def update(i):
-        ax.clear() ### Debajo de este ax.clear() se actualiza el objeto ax y tiene mucha carga de trabajo
+        dates = dx.iloc[i]
+        # dates =  mdates.drange(dates[0], dates[-1], dt.timedelta(seconds=1))
+        
+        
+        ax.clear()
+        # ax.set_xlim(dates[0], dates[-1])
+        # ax.set_xticks(dates.iloc[-1::-10].iloc[-1::-1])#-int(len(dates)/lapse)])#TODO: esto rompe?
+
+        # ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(mdates.SecondLocator()))
+
         # ax.set_title('Hola mundo!')
         # ax.set_xlabel('Tiempo')
         # ax.set_ylabel('Valor')
         # ax.set_xlim(0, len(df.columns) - 1)
-        ax.set_ylim(y_lim_min, y_lim_max)#TODO: esta variable global no se actualiza
+        ax.set_ylim(y_lim_min, y_lim_max)#TODO: esta variable global no se actualiza#TODO: esta variable se obitene dentro de esta funcion
         # ax.set_xticks(range(0, len(df.columns), 5))
         # ax.set_xticklabels([str(x) for x in range(0, len(df.columns), 5)])
         line, = ax.plot(df.iloc[i])
@@ -83,7 +105,37 @@ def plot_data(df, fps=24, repeat=True, cache=False):
 
     return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=True, repeat=repeat, cache_frame_data=cache)
 
-### Que estilización se le puede hacer al gráfico desde la librería matplo
+
+### borrar este
+def plot_data_original(df, dates, lapse, fps=24, repeat=True, cache=False):
+    pass
+#     fig, ax = plt.subplots()
+#     line, = ax.plot([], [])
+#     interval = 1000/fps
+    
+#     dates = data.index
+#     dates = mdates.drange(dates[0], dates[-1], dt.timedelta(seconds=1))
+
+#     def update(i):
+#         ax.clear()
+#         ax.set_xlim(dx[0], dx[-1])
+#         ax.set_xticks(np.linspace(dates[0], dates[-1], 10))
+
+#         ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(mdates.SecondLocator()))
+
+#         # ax.set_title('Hola mundo!')
+#         # ax.set_xlabel('Tiempo')
+#         # ax.set_ylabel('Valor')
+#         # ax.set_xlim(0, len(df.columns) - 1)
+#         ax.set_ylim(y_lim_min, y_lim_max)#TODO: esta variable global no se actualiza
+#         # ax.set_xticks(range(0, len(df.columns), 5))
+#         # ax.set_xticklabels([str(x) for x in range(0, len(df.columns), 5)])
+#         line, = ax.plot(df.iloc[i])
+#         return line, 
+
+#     return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=True, repeat=repeat, cache_frame_data=cache)
+
+
 
 def main():
     file_name = "data-processed.pkl"
@@ -134,14 +186,15 @@ def apply_dark_mode():
         prop_cycle=colors,
         labelcolor="0.81",
     )
+
     plt.rc("grid", color="474A4A", linestyle="--", alpha=0.7)
-    plt.rc("    ", color="0.81", labelsize=12)
+    plt.rc("xtick", color="0.81", labelsize=12)
     plt.rc("ytick", direction="out", color="0.81", labelsize=12)
     plt.rc("legend", facecolor="#313233", edgecolor="#313233")
     plt.rc("text", color="#C9C9C9")
-    
+
     plt.rcParams["axes.grid.which"] = "major" 
-    plt.rcParams["axes.grid.axis"] = "x"
+    plt.rcParams["axes.grid.axis"] = "y"
 
 
 
