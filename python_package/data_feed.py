@@ -4,6 +4,7 @@ from collections import deque
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 
+
 plt.ion()
 
 
@@ -32,36 +33,61 @@ def create_frame(drop_elements:list, dy:deque,) -> pd.DataFrame:#TODO: cambiar e
         lista_frames.append(dy.copy())
     return lista_frames
 
-def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:# (2): agregar el parametro repear para ver que forma va a tener el deque
-    """Storage all the results of processing the deque object"""
+def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
+
+    """Storage all the results of processing the deque object
+    Also, create global variables por axis formating
+    """
+
+    global y_lim_max, y_lim_min
+    y_lim_max = data[label].max()
+    y_lim_min = data[label].min()
     repeat=True
     if not window:
         window = len(data)
         repeat = False
-    # if repeat:
-    #     dy = deque(data[label].values, maxlen=len(data))
-    #     drop_elements = list(data[label].values)[-1::-1]
-    #     lista_frames = [dy.copy()]
-    # else:
-    dy = deque(np.zeros(window), maxlen=window)
-    drop_elements = list(data[label].values)[-1::-1]
-    lista_frames = create_frame(drop_elements, dy)
     #
+    if repeat:
+        drop_elements = list(data[label].values)[-2::-1]
+        dy = deque(data[label].values, maxlen=len(data))
+    else:
+        dy = deque(np.zeros(window)*data[label].iloc[0], maxlen=window)
+        drop_elements = list(data[label].values)[-1::-1]
+    #
+    lista_frames = create_frame(drop_elements, dy)
     row_keys = [f'{i}' for i in range(window)]
     return pd.DataFrame(lista_frames, columns=row_keys)
 
 
-def plot_data(df, speed=100, repeat=True):
+
+def plot_data(df, fps=24, repeat=True, cache=False):
     fig, ax = plt.subplots()
     line, = ax.plot([], [])
+    interval = 1000/fps
+    ax.set_xlim(0, 5)
     
+    
+    # def update(i):
+    #     ax.clear()
+    #     line, = ax.plot(df.iloc[i])#, c='steelblue', linewidth=2.5,markeredgecolor='black', markeredgewidth=1.2, label='y = x^2')
+        
+
+    #     return line, 
+
+
     def update(i):
         ax.clear()
+        ax.set_title('Hola mundo!')
+        ax.set_xlabel('Tiempo')
+        ax.set_ylabel('Valor')
+        ax.set_xlim(0, len(df.columns) - 1)
+        ax.set_ylim(y_lim_min, y_lim_max)
+        ax.set_xticks(range(0, len(df.columns), 5))
+        ax.set_xticklabels([str(x) for x in range(0, len(df.columns), 5)])
         line, = ax.plot(df.iloc[i])
         return line, 
 
-    return FuncAnimation(fig, update, frames=len(df), interval=speed, blit=True, repeat=repeat)
-
+    return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=True, repeat=repeat, cache_frame_data=cache)
 
 
 def main():
