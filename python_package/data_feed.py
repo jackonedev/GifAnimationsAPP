@@ -73,7 +73,8 @@ def plot_data(data, label, title, unit, lapse=8, fps=24, repeat=True, cache=Fals
     
     index_label =  data.reset_index().columns[0]
     dx = build_frames(data.reset_index(), index_label)
-    dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%H:%M:%S'))
+    ## La siguiente línea de código dura 22seg en ejecutarse
+    dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))
 
     df = build_frames(data,label)
 
