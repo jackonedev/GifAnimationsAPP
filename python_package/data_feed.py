@@ -77,20 +77,17 @@ def plot_data(data, label, title, unit, lapse=8, fps=24, repeat=True, cache=Fals
     dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))
     df = build_frames(data,label)
 
-    plt.title(title)
-    plt.xlabel('Time')
-    plt.ylabel(unit)
-    plt.tight_layout()
 
     def update(i):
         date = dx.iloc[i]
         frame = df.iloc[i]
         frame.index = date#TODO:COMENTNADO: el grafico corre normalmente
+        
         eje_x = date.iloc[-1::-int(len(date)/lapse)].iloc[-1::-1]
 
         ax.clear()
         line, = ax.plot(frame)
-        ax.set_xlim(date.iloc[0], date.iloc[-1]) ## Comentario: altera la visual del eje, no el formato
+        ax.set_xlim(eje_x[0], eje_x[-1]) ## Comentario: altera la visual del eje, no el formato
         # ax.set_xticks(date)
         ax.set_ylim(y_lim_min, y_lim_max)
         ax.set_yticks(np.linspace(y_lim_min, y_lim_max, 5))#TODO: ese 5 es un umbral
@@ -99,6 +96,10 @@ def plot_data(data, label, title, unit, lapse=8, fps=24, repeat=True, cache=Fals
 
 
         #TODO: esta variable global no se actualiza#TODO: esta variable se obitene dentro de esta funcion
+        plt.title(title)
+        plt.xlabel('Time')
+        plt.ylabel(unit)
+        plt.tight_layout()
         # ax.set_title('Hola mundo!')
         # ax.set_xlabel('Tiempo')
         # ax.set_ylabel('Valor')
