@@ -66,43 +66,48 @@ def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
 
 
 def plot_data(data, label, title, unit, lapse=8, fps=24, repeat=True, cache=False):
-# (df, dates, lapse, fps=24, repeat=True, cache=False):
+
     fig, ax = plt.subplots()
     line, = ax.plot([], [])
     interval = 1000/fps
     
     index_label =  data.reset_index().columns[0]
     dx = build_frames(data.reset_index(), index_label)
-    ## La siguiente línea de código dura 22seg en ejecutarse
+    ## La siguiente línea de código tarda 22seg en ejecutarse
     dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))
-
     df = build_frames(data,label)
-
 
     plt.title(title)
     plt.xlabel('Time')
     plt.ylabel(unit)
     plt.tight_layout()
+
     def update(i):
-        dates = dx.iloc[i]
-        # dates =  mdates.drange(dates[0], dates[-1], dt.timedelta(seconds=1))
-        
-        
+        date = dx.iloc[i]
+        frame = df.iloc[i]
+        frame.index = date#TODO:COMENTNADO: el grafico corre normalmente
+        eje_x = date.iloc[-1::-int(len(date)/lapse)].iloc[-1::-1]
+
         ax.clear()
-        # ax.set_xlim(dates[0], dates[-1])
-        # ax.set_xticks(dates.iloc[-1::-10].iloc[-1::-1])#-int(len(dates)/lapse)])#TODO: esto rompe?
+        line, = ax.plot(frame)
+        ax.set_xlim(date.iloc[0], date.iloc[-1]) ## Comentario: altera la visual del eje, no el formato
+        # ax.set_xticks(date)
+        ax.set_ylim(y_lim_min, y_lim_max)
+        ax.set_yticks(np.linspace(y_lim_min, y_lim_max, 5))#TODO: ese 5 es un umbral
 
-        # ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(mdates.SecondLocator()))
 
+
+
+        #TODO: esta variable global no se actualiza#TODO: esta variable se obitene dentro de esta funcion
         # ax.set_title('Hola mundo!')
         # ax.set_xlabel('Tiempo')
         # ax.set_ylabel('Valor')
         # ax.set_xlim(0, len(df.columns) - 1)
-        ax.set_ylim(y_lim_min, y_lim_max)#TODO: esta variable global no se actualiza#TODO: esta variable se obitene dentro de esta funcion
         # ax.set_xticks(range(0, len(df.columns), 5))
         # ax.set_xticklabels([str(x) for x in range(0, len(df.columns), 5)])
-        line, = ax.plot(df.iloc[i])
+        
         return line, 
+
 
     return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=True, repeat=repeat, cache_frame_data=cache)
 
