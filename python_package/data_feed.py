@@ -65,17 +65,17 @@ def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
 
 
 
-def plot_data(data, label, title, unit, grid_y=3, fps=24, repeat=True, cache=False):
+def plot_data(data, label, title, title_y, grid_y=3, fps=24, repeat=True, cache=False, window=None):
 
     fig, ax = plt.subplots()
     line, = ax.plot([], [])
     interval = 1000/fps
     
     index_label =  data.reset_index().columns[0]
-    dx = build_frames(data.reset_index(), index_label)
+    dx = build_frames(data.reset_index(), index_label, window=window)
     ## La siguiente línea de código tarda 22seg en ejecutarse
     dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))
-    df = build_frames(data,label)
+    df = build_frames(data,label, window=window)
 
 
     def update(i):
@@ -86,7 +86,7 @@ def plot_data(data, label, title, unit, grid_y=3, fps=24, repeat=True, cache=Fal
         frame.index = eje_x
 
         ax.clear()
-        line, = ax.plot(frame)
+        line, = ax.plot(frame, linewidth=1)
         ax.set_ylim(y_lim_min, y_lim_max)
         ax.set_yticks(np.linspace(y_lim_min, y_lim_max, grid_y))
 
@@ -104,26 +104,16 @@ def plot_data(data, label, title, unit, grid_y=3, fps=24, repeat=True, cache=Fal
             lista_eje_x.append(eje_x[-i-1])
             lista_eje_x.append(eje_x[-len(eje_x[-i-1:-180])//2-180])
             ax.set_xticks(lista_eje_x)
-        
-        #TODO: esta variable global no se actualiza#TODO: esta variable se obitene dentro de esta funcion
-        
-        # plt.title(title)
-        # plt.xlabel('Time')
-        # plt.ylabel(unit)
-        # plt.tight_layout()
 
-
-        # ax.set_title('Hola mundo!')
-        # ax.set_xlabel('Tiempo')
-        # ax.set_ylabel('Valor')
-        # ax.set_xlim(0, len(df.columns) - 1)
-        # ax.set_xticks(range(0, len(df.columns), 5))
-        # ax.set_xticklabels([str(x) for x in range(0, len(df.columns), 5)])
+        
+        ax.set_xlabel('Time')
+        ax.set_ylabel(title_y)
+        plt.tight_layout()
         
         return line, 
 
 
-    return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=True, repeat=repeat, cache_frame_data=cache)
+    return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=False, repeat=repeat, cache_frame_data=cache)
 
 
 ### borrar este
