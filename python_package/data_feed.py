@@ -35,12 +35,11 @@ def create_frame(drop_elements:list, dy:deque,) -> pd.DataFrame:#TODO: cambiar e
     return lista_frames
 
 def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
-
     """Storage all the results of processing the deque object
     Also, create global variables por axis formating
     """
-
     global y_lim_max, y_lim_min
+
     y_lim_max = data[label].max()
     y_lim_min = data[label].min()
     repeat=True##TODO: testear la funcion window: window=len(data)
@@ -63,20 +62,20 @@ def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
     row_keys = [f'{i}' for i in range(window)]
     return pd.DataFrame(lista_frames, columns=row_keys)
 
-
-
-def plot_data(data, label, title, title_y, grid_y=3, fps=24, repeat=True, cache=False, window=None):
-
-    fig, ax = plt.subplots()
-    line, = ax.plot([], [])
-    interval = 1000/fps
-    
+def get_dx(data: pd.DataFrame, window:int=0) -> pd.DataFrame:
     index_label =  data.reset_index().columns[0]
     dx = build_frames(data.reset_index(), index_label, window=window)
     ## La siguiente línea de código tarda 22seg en ejecutarse
-    dx = dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))
-    df = build_frames(data,label, window=window)
+    return dx.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))    
 
+
+def plot_data(data, dx, label, title, title_y, grid_y=5, fps=24, repeat=True, cache=False, window=None):
+
+    fig, ax = plt.subplots(figsize=(10, 3))
+    line, = ax.plot([], [])
+    interval = 1000/fps
+    
+    df = build_frames(data, label, window=window)
 
     def update(i):
         date = dx.iloc[i]
@@ -116,9 +115,8 @@ def plot_data(data, label, title, title_y, grid_y=3, fps=24, repeat=True, cache=
     return FuncAnimation(fig, update, frames=len(df), interval=interval, blit=False, repeat=repeat, cache_frame_data=cache)
 
 
-### borrar este
-def plot_data_original(df, dates, lapse, fps=24, repeat=True, cache=False):
-    pass
+# ### borrar este
+# def plot_data_original(df, dates, lapse, fps=24, repeat=True, cache=False):
 #     fig, ax = plt.subplots()
 #     line, = ax.plot([], [])
 #     interval = 1000/fps
