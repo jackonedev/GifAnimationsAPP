@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import deque
 import datetime as dt
-
+from rich import print
 
 def create_frame(drop_elements:list, dy:deque,) -> pd.DataFrame:#TODO: cambiar el nombre de los parámetros
     lista_frames = []
@@ -39,12 +39,6 @@ def build_frames(data: pd.DataFrame, label: str, window:int=0) -> pd.DataFrame:
     return pd.DataFrame(lista_frames, columns=row_keys)
 
 
-def prepare_frame(i, lapse=8):
-    date = dates.iloc[i]
-    frame = frames.iloc[i]
-    frame.index = dates.iloc[i]
-    return frame
-
 
 def main():
     data = pd.read_pickle('data/data-processed.pkl')
@@ -53,10 +47,8 @@ def main():
     dates = dates.replace(0, pd.Timestamp('00:00:00').floor('s')).applymap(lambda x: x.to_pydatetime().strftime('%M:%S'))
     frames = build_frames(sample, sample.columns[0])
 
-    frame = prepare_frame(i=0, lapse=6)
 
-    import pprint as p
-    p.pprint(frame)
+    print(frames)
 
 if __name__ ==  '__main__' :
     main()
